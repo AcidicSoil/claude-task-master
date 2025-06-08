@@ -389,14 +389,57 @@ function displayHelp() {
 	// Get terminal width - moved to top of function to make it available throughout
 	const terminalWidth = process.stdout.columns || 100; // Default to 100 if can't detect
 
+        console.log(
+                boxen(chalk.white.bold('Task Master CLI'), {
+                        padding: 1,
+                        borderColor: 'blue',
+                        borderStyle: 'round',
+                        margin: { top: 1, bottom: 1 }
+                })
+        );
+
+        console.log(chalk.bold.underline('Commands'));
+
+	// Display global flags
 	console.log(
-		boxen(chalk.white.bold('Task Master CLI'), {
-			padding: 1,
-			borderColor: 'blue',
-			borderStyle: 'round',
-			margin: { top: 1, bottom: 1 }
+		boxen(chalk.green.bold('Global Flags'), {
+			padding: { left: 2, right: 2, top: 0, bottom: 0 },
+			margin: { top: 0, bottom: 0 },
+			borderColor: 'green',
+			borderStyle: 'round'
 		})
 	);
+
+	const flagTable = new Table({
+		colWidths: [20, Math.max(40, terminalWidth - 30)],
+		chars: {
+			top: '',
+			'top-mid': '',
+			'top-left': '',
+			'top-right': '',
+			bottom: '',
+			'bottom-mid': '',
+			'bottom-left': '',
+			'bottom-right': '',
+			left: '',
+			'left-mid': '',
+			mid: '',
+			'mid-mid': '',
+			right: '',
+			'right-mid': '',
+			middle: ' '
+		},
+		style: { border: [], 'padding-left': 4 },
+		wordWrap: true
+	});
+
+	flagTable.push(
+		['--verbose', 'Enable debug logging'],
+		['--silent', 'Suppress all console output']
+	);
+
+	console.log(flagTable.toString());
+	console.log('');
 
 	// Command categories
 	const commandCategories = [
@@ -404,192 +447,222 @@ function displayHelp() {
 			title: 'Project Setup & Configuration',
 			color: 'blue',
 			commands: [
-				{
-					name: 'init',
-					args: '[--name=<name>] [--description=<desc>] [-y]',
-					desc: 'Initialize a new project with Task Master structure'
-				},
-				{
-					name: 'models',
-					args: '',
-					desc: 'View current AI model configuration and available models'
-				},
-				{
-					name: 'models --setup',
-					args: '',
-					desc: 'Run interactive setup to configure AI models'
-				},
-				{
-					name: 'models --set-main',
-					args: '<model_id>',
-					desc: 'Set the primary model for task generation'
-				},
-				{
-					name: 'models --set-research',
-					args: '<model_id>',
-					desc: 'Set the model for research operations'
-				},
-				{
-					name: 'models --set-fallback',
-					args: '<model_id>',
-					desc: 'Set the fallback model (optional)'
-				}
+                                {
+                                        name: 'init',
+                                        args: '[--name=<name>] [--description=<desc>] [-y]',
+                                        desc: 'Initialize a new project with Task Master structure',
+                                        example: 'task-master init'
+                                },
+                                {
+                                        name: 'models',
+                                        args: '',
+                                        desc: 'View current AI model configuration and available models',
+                                        example: 'task-master models'
+                                },
+                                {
+                                        name: 'models --setup',
+                                        args: '',
+                                        desc: 'Run interactive setup to configure AI models',
+                                        example: 'task-master models --setup'
+                                },
+                                {
+                                        name: 'models --set-main',
+                                        args: '<model_id>',
+                                        desc: 'Set the primary model for task generation',
+                                        example: 'task-master models --set-main=claude-3-opus'
+                                },
+                                {
+                                        name: 'models --set-research',
+                                        args: '<model_id>',
+                                        desc: 'Set the model for research operations',
+                                        example: 'task-master models --set-research=sonar-pro'
+                                },
+                                {
+                                        name: 'models --set-fallback',
+                                        args: '<model_id>',
+                                        desc: 'Set the fallback model (optional)',
+                                        example: 'task-master models --set-fallback=claude-3-haiku'
+                                }
 			]
 		},
 		{
 			title: 'Task Generation',
 			color: 'cyan',
 			commands: [
-				{
-					name: 'parse-prd',
-					args: '--input=<file.txt> [--num-tasks=10]',
-					desc: 'Generate tasks from a PRD document'
-				},
-				{
-					name: 'generate',
-					args: '',
-					desc: 'Create individual task files from tasks.json'
-				}
+                                {
+                                        name: 'parse-prd',
+                                        args: '--input=<file.txt> [--num-tasks=10]',
+                                        desc: 'Generate tasks from a PRD document',
+                                        example: 'task-master parse-prd prd.txt'
+                                },
+                                {
+                                        name: 'generate',
+                                        args: '',
+                                        desc: 'Create individual task files from tasks.json',
+                                        example: 'task-master generate'
+                                }
 			]
 		},
 		{
 			title: 'Task Management',
 			color: 'green',
 			commands: [
-				{
-					name: 'list',
-					args: '[--status=<status>] [--with-subtasks]',
-					desc: 'List all tasks with their status'
-				},
-				{
-					name: 'set-status',
-					args: '--id=<id> --status=<status>',
-					desc: `Update task status (${TASK_STATUS_OPTIONS.join(', ')})`
-				},
-				{
-					name: 'update',
-					args: '--from=<id> --prompt="<context>"',
-					desc: 'Update multiple tasks based on new requirements'
-				},
-				{
-					name: 'update-task',
-					args: '--id=<id> --prompt="<context>"',
-					desc: 'Update a single specific task with new information'
-				},
-				{
-					name: 'update-subtask',
-					args: '--id=<parentId.subtaskId> --prompt="<context>"',
-					desc: 'Append additional information to a subtask'
-				},
-				{
-					name: 'add-task',
-					args: '--prompt="<text>" [--dependencies=<ids>] [--priority=<priority>]',
-					desc: 'Add a new task using AI'
-				},
-				{
-					name: 'remove-task',
-					args: '--id=<id> [-y]',
-					desc: 'Permanently remove a task or subtask'
-				}
+                                {
+                                        name: 'list',
+                                        args: '[--status=<status>] [--with-subtasks]',
+                                        desc: 'List all tasks with their status',
+                                        example: 'task-master list --status=pending'
+                                },
+                                {
+                                        name: 'set-status',
+                                        args: '--id=<id> --status=<status>',
+                                        desc: `Update task status (${TASK_STATUS_OPTIONS.join(', ')})`,
+                                        example: 'task-master set-status --id=2 --status=done'
+                                },
+                                {
+                                        name: 'update',
+                                        args: '--from=<id> --prompt="<context>"',
+                                        desc: 'Update multiple tasks based on new requirements',
+                                        example: 'task-master update --from=3 --prompt="new info"'
+                                },
+                                {
+                                        name: 'update-task',
+                                        args: '--id=<id> --prompt="<context>"',
+                                        desc: 'Update a single specific task with new information',
+                                        example: 'task-master update-task --id=5 --prompt="details"'
+                                },
+                                {
+                                        name: 'update-subtask',
+                                        args: '--id=<parentId.subtaskId> --prompt="<context>"',
+                                        desc: 'Append additional information to a subtask',
+                                        example: 'task-master update-subtask --id=1.2 --prompt="notes"'
+                                },
+                                {
+                                        name: 'add-task',
+                                        args: '--prompt="<text>" [--dependencies=<ids>] [--priority=<priority>]',
+                                        desc: 'Add a new task using AI',
+                                        example: 'task-master add-task --prompt="build auth"'
+                                },
+                                {
+                                        name: 'remove-task',
+                                        args: '--id=<id> [-y]',
+                                        desc: 'Permanently remove a task or subtask',
+                                        example: 'task-master remove-task --id=7'
+                                }
 			]
 		},
 		{
 			title: 'Subtask Management',
 			color: 'yellow',
 			commands: [
-				{
-					name: 'add-subtask',
-					args: '--parent=<id> --title="<title>" [--description="<desc>"]',
-					desc: 'Add a new subtask to a parent task'
-				},
-				{
-					name: 'add-subtask',
-					args: '--parent=<id> --task-id=<id>',
-					desc: 'Convert an existing task into a subtask'
-				},
-				{
-					name: 'remove-subtask',
-					args: '--id=<parentId.subtaskId> [--convert]',
-					desc: 'Remove a subtask (optionally convert to standalone task)'
-				},
-				{
-					name: 'clear-subtasks',
-					args: '--id=<id>',
-					desc: 'Remove all subtasks from specified tasks'
-				},
-				{
-					name: 'clear-subtasks --all',
-					args: '',
-					desc: 'Remove subtasks from all tasks'
-				}
+                                {
+                                        name: 'add-subtask',
+                                        args: '--parent=<id> --title="<title>" [--description="<desc>"]',
+                                        desc: 'Add a new subtask to a parent task',
+                                        example: 'task-master add-subtask --parent=1 --title="Setup DB"'
+                                },
+                                {
+                                        name: 'add-subtask',
+                                        args: '--parent=<id> --task-id=<id>',
+                                        desc: 'Convert an existing task into a subtask',
+                                        example: 'task-master add-subtask --parent=1 --task-id=3'
+                                },
+                                {
+                                        name: 'remove-subtask',
+                                        args: '--id=<parentId.subtaskId> [--convert]',
+                                        desc: 'Remove a subtask (optionally convert to standalone task)',
+                                        example: 'task-master remove-subtask --id=1.2'
+                                },
+                                {
+                                        name: 'clear-subtasks',
+                                        args: '--id=<id>',
+                                        desc: 'Remove all subtasks from specified tasks',
+                                        example: 'task-master clear-subtasks --id=2'
+                                },
+                                {
+                                        name: 'clear-subtasks --all',
+                                        args: '',
+                                        desc: 'Remove subtasks from all tasks',
+                                        example: 'task-master clear-subtasks --all'
+                                }
 			]
 		},
 		{
 			title: 'Task Analysis & Breakdown',
 			color: 'magenta',
 			commands: [
-				{
-					name: 'analyze-complexity',
-					args: '[--research] [--threshold=5]',
-					desc: 'Analyze tasks and generate expansion recommendations'
-				},
-				{
-					name: 'complexity-report',
-					args: '[--file=<path>]',
-					desc: 'Display the complexity analysis report'
-				},
-				{
-					name: 'expand',
-					args: '--id=<id> [--num=5] [--research] [--prompt="<context>"]',
-					desc: 'Break down tasks into detailed subtasks'
-				},
-				{
-					name: 'expand --all',
-					args: '[--force] [--research]',
-					desc: 'Expand all pending tasks with subtasks'
-				}
+                                {
+                                        name: 'analyze-complexity',
+                                        args: '[--research] [--threshold=5]',
+                                        desc: 'Analyze tasks and generate expansion recommendations',
+                                        example: 'task-master analyze-complexity'
+                                },
+                                {
+                                        name: 'complexity-report',
+                                        args: '[--file=<path>]',
+                                        desc: 'Display the complexity analysis report',
+                                        example: 'task-master complexity-report'
+                                },
+                                {
+                                        name: 'expand',
+                                        args: '--id=<id> [--num=5] [--research] [--prompt="<context>"]',
+                                        desc: 'Break down tasks into detailed subtasks',
+                                        example: 'task-master expand --id=5'
+                                },
+                                {
+                                        name: 'expand --all',
+                                        args: '[--force] [--research]',
+                                        desc: 'Expand all pending tasks with subtasks',
+                                        example: 'task-master expand --all'
+                                }
 			]
 		},
 		{
 			title: 'Task Navigation & Viewing',
 			color: 'cyan',
 			commands: [
-				{
-					name: 'next',
-					args: '',
-					desc: 'Show the next task to work on based on dependencies'
-				},
-				{
-					name: 'show',
-					args: '<id>',
-					desc: 'Display detailed information about a specific task'
-				}
+                                {
+                                        name: 'next',
+                                        args: '',
+                                        desc: 'Show the next task to work on based on dependencies',
+                                        example: 'task-master next'
+                                },
+                                {
+                                        name: 'show',
+                                        args: '<id>',
+                                        desc: 'Display detailed information about a specific task',
+                                        example: 'task-master show 3'
+                                }
 			]
 		},
 		{
 			title: 'Dependency Management',
 			color: 'blue',
 			commands: [
-				{
-					name: 'add-dependency',
-					args: '--id=<id> --depends-on=<id>',
-					desc: 'Add a dependency to a task'
-				},
-				{
-					name: 'remove-dependency',
-					args: '--id=<id> --depends-on=<id>',
-					desc: 'Remove a dependency from a task'
-				},
-				{
-					name: 'validate-dependencies',
-					args: '',
-					desc: 'Identify invalid dependencies without fixing them'
-				},
-				{
-					name: 'fix-dependencies',
-					args: '',
-					desc: 'Fix invalid dependencies automatically'
-				}
+                                {
+                                        name: 'add-dependency',
+                                        args: '--id=<id> --depends-on=<id>',
+                                        desc: 'Add a dependency to a task',
+                                        example: 'task-master add-dependency --id=3 --depends-on=1'
+                                },
+                                {
+                                        name: 'remove-dependency',
+                                        args: '--id=<id> --depends-on=<id>',
+                                        desc: 'Remove a dependency from a task',
+                                        example: 'task-master remove-dependency --id=3 --depends-on=1'
+                                },
+                                {
+                                        name: 'validate-dependencies',
+                                        args: '',
+                                        desc: 'Identify invalid dependencies without fixing them',
+                                        example: 'task-master validate-dependencies'
+                                },
+                                {
+                                        name: 'fix-dependencies',
+                                        args: '',
+                                        desc: 'Fix invalid dependencies automatically',
+                                        example: 'task-master fix-dependencies'
+                                }
 			]
 		}
 	];
@@ -606,12 +679,13 @@ function displayHelp() {
 		);
 
 		// Calculate dynamic column widths - adjust ratios as needed
-		const nameWidth = Math.max(25, Math.floor(terminalWidth * 0.2)); // 20% of width but min 25
-		const argsWidth = Math.max(40, Math.floor(terminalWidth * 0.35)); // 35% of width but min 40
-		const descWidth = Math.max(45, Math.floor(terminalWidth * 0.45) - 10); // 45% of width but min 45, minus some buffer
+                const nameWidth = Math.max(20, Math.floor(terminalWidth * 0.15));
+                const argsWidth = Math.max(30, Math.floor(terminalWidth * 0.25));
+                const descWidth = Math.max(40, Math.floor(terminalWidth * 0.35) - 10);
+                const exampleWidth = Math.max(30, terminalWidth - nameWidth - argsWidth - descWidth - 10);
 
-		const commandTable = new Table({
-			colWidths: [nameWidth, argsWidth, descWidth],
+                const commandTable = new Table({
+                        colWidths: [nameWidth, argsWidth, descWidth, exampleWidth],
 			chars: {
 				top: '',
 				'top-mid': '',
@@ -633,13 +707,14 @@ function displayHelp() {
 			wordWrap: true
 		});
 
-		category.commands.forEach((cmd, index) => {
-			commandTable.push([
-				`${chalk.yellow.bold(cmd.name)}${chalk.reset('')}`,
-				`${chalk.white(cmd.args)}${chalk.reset('')}`,
-				`${chalk.dim(cmd.desc)}${chalk.reset('')}`
-			]);
-		});
+                category.commands.forEach((cmd) => {
+                        commandTable.push([
+                                `${chalk.yellow.bold(cmd.name)}${chalk.reset('')}`,
+                                `${chalk.white(cmd.args)}${chalk.reset('')}`,
+                                `${chalk.dim(cmd.desc)}${chalk.reset('')}`,
+                                `${chalk.gray(cmd.example || '')}${chalk.reset('')}`
+                        ]);
+                });
 
 		console.log(commandTable.toString());
 		console.log('');
@@ -728,16 +803,18 @@ function displayHelp() {
 				chalk.white('task-master list') +
 				'\n' +
 				chalk.cyan('5. Find Next Task: ') +
-				chalk.white('task-master next'),
-			{
-				padding: 1,
-				borderColor: 'yellow',
-				borderStyle: 'round',
-				margin: { top: 1 },
-				width: Math.min(configTerminalWidth - 10, 100) // Limit width to terminal width minus padding, max 100
-			}
-		)
-	);
+                                chalk.white('task-master next'),
+                        {
+                                padding: 1,
+                                borderColor: 'yellow',
+                                borderStyle: 'round',
+                                margin: { top: 1 },
+                                width: Math.min(configTerminalWidth - 10, 100) // Limit width to terminal width minus padding, max 100
+                        }
+                )
+        );
+
+        console.log(chalk.dim('For full command details see ') + chalk.cyan('docs/command-reference.md'));
 }
 
 /**

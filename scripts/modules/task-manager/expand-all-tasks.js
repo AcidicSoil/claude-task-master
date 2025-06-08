@@ -1,8 +1,9 @@
 import { log, readJSON, isSilentMode } from '../utils.js';
 import {
-	startLoadingIndicator,
-	stopLoadingIndicator,
-	displayAiUsageSummary
+        startLoadingIndicator,
+        stopLoadingIndicator,
+        displayAiUsageSummary,
+        createProgressBar
 } from '../ui.js';
 import expandTask from './expand-task.js';
 import { getDebugFlag } from '../config-manager.js';
@@ -55,9 +56,10 @@ async function expandAllTasks(
 						!isSilentMode() && getDebugFlag(session) && log('debug', msg)
 				});
 
-	let loadingIndicator = null;
-	let expandedCount = 0;
-	let failedCount = 0;
+        let loadingIndicator = null;
+        let expandedCount = 0;
+        let failedCount = 0;
+        let progressCount = 0; // Track tasks processed for progress bar
 	let tasksToExpandCount = 0;
 	const allTelemetryData = []; // Still collect individual data first
 
@@ -80,8 +82,17 @@ async function expandAllTasks(
 				(task.status === 'pending' || task.status === 'in-progress') && // Include 'in-progress'
 				(!task.subtasks || task.subtasks.length === 0 || force) // Check subtasks/force here
 		);
-		tasksToExpandCount = tasksToExpand.length; // Get the count from the filtered array
-		logger.info(`Found ${tasksToExpandCount} tasks eligible for expansion.`);
+                tasksToExpandCount = tasksToExpand.length; // Get the count from the filtered array
+                logger.info(`Found ${tasksToExpandCount} tasks eligible for expansion.`);
+
+                // Display initial progress bar
+                if (outputFormat === 'text' && tasksToExpandCount > 0) {
+                        console.log(
+                                chalk.cyan(
+                                        `Progress: ${createProgressBar(0, 30)}`
+                                )
+                        );
+                }
 		// --- End Restored Filtering Logic ---
 
 		if (loadingIndicator) {
@@ -132,20 +143,38 @@ async function expandAllTasks(
 				if (taskIndicator) {
 					stopLoadingIndicator(taskIndicator, `Task ${task.id} expanded.`);
 				}
-				logger.info(`Successfully expanded task ${task.id}.`);
-			} catch (error) {
-				failedCount++;
-				if (taskIndicator) {
+                                logger.info(`Successfully expanded task ${task.id}.`);
+                                progressCount++;
+                                if (outputFormat === 'text') {
+                                        const percent = (progressCount / tasksToExpandCount) * 100;
+                                        console.log(
+                                                chalk.cyan(
+                                                        `Progress: ${createProgressBar(percent, 30)}`
+                                                )
+                                        );
+                                }
+                        } catch (error) {
+                                failedCount++;
+                                if (taskIndicator) {
 					stopLoadingIndicator(
 						taskIndicator,
 						`Failed to expand task ${task.id}.`,
 						false
 					);
 				}
-				logger.error(`Failed to expand task ${task.id}: ${error.message}`);
-				// Continue to the next task
-			}
-		}
+                                logger.error(`Failed to expand task ${task.id}: ${error.message}`);
+                                progressCount++;
+                                if (outputFormat === 'text') {
+                                        const percent = (progressCount / tasksToExpandCount) * 100;
+                                        console.log(
+                                                chalk.cyan(
+                                                        `Progress: ${createProgressBar(percent, 30)}`
+                                                )
+                                        );
+                                }
+                                // Continue to the next task
+                        }
+                }
 
 		// --- AGGREGATION AND DISPLAY ---
 		logger.info(
