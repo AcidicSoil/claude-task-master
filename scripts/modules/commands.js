@@ -657,7 +657,8 @@ function registerCommands(programInstance) {
 		)
 		.option('-o, --output <file>', 'Output file path', TASKMASTER_TASKS_FILE)
 		.option('-n, --num-tasks <number>', 'Number of tasks to generate', '10')
-		.option('-f, --force', 'Skip confirmation when overwriting existing tasks')
+                .option('-f, --force', 'Skip confirmation when overwriting existing tasks')
+                .option('-y, --yes', 'Skip confirmation prompts')
 		.option(
 			'--append',
 			'Append new tasks to existing tasks.json instead of overwriting'
@@ -672,7 +673,8 @@ function registerCommands(programInstance) {
 			const defaultPrdPath = PRD_FILE;
 			const numTasks = parseInt(options.numTasks, 10);
 			const outputPath = options.output;
-			const force = options.force || false;
+                        const force = options.force || false;
+                        const yes = options.yes || false;
 			const append = options.append || false;
 			const research = options.research || false;
 			let useForce = force;
@@ -680,16 +682,19 @@ function registerCommands(programInstance) {
 
 			// Helper function to check if tasks.json exists and confirm overwrite
 			async function confirmOverwriteIfNeeded() {
-				if (fs.existsSync(outputPath) && !useForce && !useAppend) {
-					const overwrite = await confirmTaskOverwrite(outputPath);
-					if (!overwrite) {
-						log('info', 'Operation cancelled.');
-						return false;
-					}
-					// If user confirms 'y', we should set useForce = true for the parsePRD call
-					// Only overwrite if not appending
-					useForce = true;
-				}
+                                if (fs.existsSync(outputPath) && !useForce && !useAppend) {
+                                        if (yes) {
+                                                useForce = true;
+                                        } else {
+                                                const overwrite = await confirmTaskOverwrite(outputPath);
+                                                if (!overwrite) {
+                                                        log('info', 'Operation cancelled.');
+                                                        return false;
+                                                }
+                                                // Only overwrite if not appending
+                                                useForce = true;
+                                        }
+                                }
 				return true;
 			}
 
@@ -1942,12 +1947,13 @@ function registerCommands(programInstance) {
 			'-i, --id <id>',
 			'Subtask ID(s) to remove in format "parentId.subtaskId" (can be comma-separated for multiple subtasks)'
 		)
-		.option(
-			'-c, --convert',
-			'Convert the subtask to a standalone task instead of deleting it'
-		)
-		.option('--skip-generate', 'Skip regenerating task files')
-		.action(async (options) => {
+                .option(
+                        '-c, --convert',
+                        'Convert the subtask to a standalone task instead of deleting it'
+                )
+                .option('--skip-generate', 'Skip regenerating task files')
+                .option('-y, --yes', 'Skip confirmation prompts')
+                .action(async (options) => {
 			const tasksPath = options.file || TASKMASTER_TASKS_FILE;
 			const subtaskIds = options.id;
 			const convertToTask = options.convert || false;
@@ -1967,9 +1973,9 @@ function registerCommands(programInstance) {
 				// Split by comma to support multiple subtask IDs
 				const subtaskIdArray = subtaskIds.split(',').map((id) => id.trim());
 
-				for (const subtaskId of subtaskIdArray) {
-					// Validate subtask ID format
-					if (!subtaskId.includes('.')) {
+                                for (const subtaskId of subtaskIdArray) {
+                                        // Validate subtask ID format
+                                        if (!subtaskId.includes('.')) {
 						console.error(
 							chalk.red(
 								`Error: Subtask ID "${subtaskId}" must be in format "parentId.subtaskId"`
@@ -1979,12 +1985,27 @@ function registerCommands(programInstance) {
 						process.exit(1);
 					}
 
-					console.log(chalk.blue(`Removing subtask ${subtaskId}...`));
-					if (convertToTask) {
-						console.log(
-							chalk.blue('The subtask will be converted to a standalone task')
-						);
-					}
+                                        if (!convertToTask && !options.yes) {
+                                                const { confirm } = await inquirer.prompt([
+                                                        {
+                                                                type: 'confirm',
+                                                                name: 'confirm',
+                                                                message: chalk.cyan(`Delete subtask ${subtaskId}?`),
+                                                                default: false
+                                                        }
+                                                ]);
+                                                if (!confirm) {
+                                                        console.log(chalk.blue('Operation cancelled.'));
+                                                        continue;
+                                                }
+                                        }
+
+                                        console.log(chalk.blue(`Removing subtask ${subtaskId}...`));
+                                        if (convertToTask) {
+                                                console.log(
+                                                        chalk.blue('The subtask will be converted to a standalone task')
+                                                );
+                                        }
 
 					const result = await removeSubtask(
 						tasksPath,
@@ -2068,10 +2089,11 @@ function registerCommands(programInstance) {
 					'\n' +
 					'  -i, --id <id>       Subtask ID(s) to remove in format "parentId.subtaskId" (can be comma-separated, required)\n' +
 					'  -c, --convert       Convert the subtask to a standalone task instead of deleting it\n' +
-					'  -f, --file <file>   Path to the tasks file (default: "' +
-					TASKMASTER_TASKS_FILE +
-					'")\n' +
-					'  --skip-generate     Skip regenerating task files\n\n' +
+                                        '  -f, --file <file>   Path to the tasks file (default: "' +
+                                        TASKMASTER_TASKS_FILE +
+                                        '")\n' +
+                                        '  --skip-generate     Skip regenerating task files\n' +
+                                        '  -y, --yes           Skip confirmation prompts\n\n' +
 					chalk.cyan('Examples:') +
 					'\n' +
 					'  task-master remove-subtask --id=5.2\n' +
