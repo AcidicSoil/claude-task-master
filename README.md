@@ -171,7 +171,7 @@ This will prompt you for project details and set up a new project with the neces
 task-master init
 
 # Parse a PRD and generate tasks
-task-master parse-prd your-prd.txt
+task-master parse-prd
 
 # List all tasks
 task-master list
@@ -182,6 +182,9 @@ task-master next
 # Generate task files
 task-master generate
 ```
+
+Tip: `parse-prd` automatically checks `.taskmaster/docs/prd.txt`. Use the
+`--input` flag only when your PRD is in a different location.
 
 ## Documentation
 

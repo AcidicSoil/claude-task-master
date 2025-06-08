@@ -100,7 +100,7 @@ After setting up Task Master, you can use these commands (either via AI prompts 
 
 ```bash
 # Parse a PRD and generate tasks
-task-master parse-prd your-prd.txt
+task-master parse-prd
 
 # List all tasks
 task-master list
@@ -111,6 +111,9 @@ task-master next
 # Generate task files
 task-master generate
 ```
+
+The `parse-prd` command looks for `.taskmaster/docs/prd.txt` by default. Provide
+`--input` or a file argument only when your PRD lives elsewhere.
 
 ## Setting up Cursor AI Integration
 
@@ -163,6 +166,9 @@ The agent will execute:
 ```bash
 task-master parse-prd .taskmaster/docs/prd.txt
 ```
+
+You can omit the file path here because `parse-prd` searches for
+`.taskmaster/docs/prd.txt` automatically.
 
 This will:
 
