@@ -397,6 +397,47 @@ function displayHelp() {
 		})
 	);
 
+	// Display global flags
+	console.log(
+		boxen(chalk.green.bold('Global Flags'), {
+			padding: { left: 2, right: 2, top: 0, bottom: 0 },
+			margin: { top: 0, bottom: 0 },
+			borderColor: 'green',
+			borderStyle: 'round'
+		})
+	);
+
+	const flagTable = new Table({
+		colWidths: [20, Math.max(40, terminalWidth - 30)],
+		chars: {
+			top: '',
+			'top-mid': '',
+			'top-left': '',
+			'top-right': '',
+			bottom: '',
+			'bottom-mid': '',
+			'bottom-left': '',
+			'bottom-right': '',
+			left: '',
+			'left-mid': '',
+			mid: '',
+			'mid-mid': '',
+			right: '',
+			'right-mid': '',
+			middle: ' '
+		},
+		style: { border: [], 'padding-left': 4 },
+		wordWrap: true
+	});
+
+	flagTable.push(
+		['--verbose', 'Enable debug logging'],
+		['--silent', 'Suppress all console output']
+	);
+
+	console.log(flagTable.toString());
+	console.log('');
+
 	// Command categories
 	const commandCategories = [
 		{

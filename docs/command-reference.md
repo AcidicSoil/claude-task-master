@@ -2,6 +2,15 @@
 
 Here's a comprehensive reference of all available commands:
 
+## Global Flags
+
+Use these flags with any command:
+
+```bash
+--verbose  # Enable debug logging
+--silent   # Suppress all console output
+```
+
 ## Parse PRD
 
 ```bash

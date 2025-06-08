@@ -17,6 +17,16 @@ import {
 
 // Global silent mode flag
 let silentMode = false;
+// Global verbose mode flag
+let verboseMode = false;
+
+// Check CLI flags for verbosity or silence
+if (process.argv.includes('--silent')) {
+	silentMode = true;
+}
+if (process.argv.includes('--verbose')) {
+	verboseMode = true;
+}
 
 // --- Environment Variable Resolution Utility ---
 /**
@@ -130,10 +140,32 @@ function enableSilentMode() {
 }
 
 /**
+ * Enable verbose logging mode
+ */
+function enableVerboseMode() {
+	verboseMode = true;
+}
+
+/**
  * Disable silent logging mode
  */
 function disableSilentMode() {
 	silentMode = false;
+}
+
+/**
+ * Disable verbose logging mode
+ */
+function disableVerboseMode() {
+	verboseMode = false;
+}
+
+/**
+ * Check if verbose mode is enabled
+ * @returns {boolean} True if verbose mode is enabled
+ */
+function isVerboseMode() {
+	return verboseMode;
 }
 
 /**
@@ -165,6 +197,11 @@ function log(level, ...args) {
 		// If getLogLevel() fails (likely due to circular dependency),
 		// use default 'info' level and continue
 		configLevel = 'info';
+	}
+
+	// Override with verbose mode if set
+	if (verboseMode) {
+		configLevel = 'debug';
 	}
 
 	// Use text prefixes instead of emojis
@@ -678,9 +715,12 @@ export {
 	toKebabCase,
 	detectCamelCaseFlags,
 	disableSilentMode,
+	disableVerboseMode,
 	enableSilentMode,
+	enableVerboseMode,
 	getTaskManager,
 	isSilentMode,
+	isVerboseMode,
 	addComplexityToTask,
 	resolveEnvVariable,
 	findProjectRoot,
