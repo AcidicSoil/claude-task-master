@@ -21,6 +21,10 @@ task-master parse-prd <prd-file.txt>
 task-master parse-prd <prd-file.txt> --num-tasks=10
 ```
 
+By default, this command looks for `.taskmaster/docs/prd.txt`. Use the
+`--input` flag or a positional file argument only if your PRD is stored in a
+different location.
+
 ## List Tasks
 
 ```bash
