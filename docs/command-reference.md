@@ -19,11 +19,12 @@ task-master parse-prd <prd-file.txt>
 
 # Limit the number of tasks generated
 task-master parse-prd <prd-file.txt> --num-tasks=10
+
+# Skip overwrite confirmation
+task-master parse-prd <prd-file.txt> --yes
 ```
 
-By default, this command looks for `.taskmaster/docs/prd.txt`. Use the
-`--input` flag or a positional file argument only if your PRD is stored in a
-different location.
+By default, Task Master prompts before overwriting an existing `tasks.json` file. Use `--yes` to bypass the prompt when automating.
 
 ## List Tasks
 
@@ -151,6 +152,18 @@ task-master clear-subtasks --id=1,2,3
 # Clear subtasks from all tasks
 task-master clear-subtasks --all
 ```
+
+## Remove Subtask
+
+```bash
+# Delete a subtask from its parent task
+task-master remove-subtask --id=<parentId.subtaskId>
+
+# Skip the confirmation prompt
+task-master remove-subtask --id=<parentId.subtaskId> --yes
+```
+
+Deleting a subtask requires confirmation unless `--yes` is supplied.
 
 ## Analyze Task Complexity
 

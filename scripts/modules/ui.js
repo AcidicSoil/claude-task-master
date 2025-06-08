@@ -9,6 +9,7 @@ import boxen from 'boxen';
 import ora from 'ora';
 import Table from 'cli-table3';
 import gradient from 'gradient-string';
+import inquirer from 'inquirer';
 import {
 	log,
 	findTaskById,
@@ -1881,22 +1882,17 @@ async function confirmTaskOverwrite(tasksPath) {
 		)
 	);
 
-	// Use dynamic import to get the readline module
-	const readline = await import('readline');
-	const rl = readline.createInterface({
-		input: process.stdin,
-		output: process.stdout
-	});
+        // Prompt using inquirer for confirmation
+        const { overwrite } = await inquirer.prompt([
+                {
+                        type: 'confirm',
+                        name: 'overwrite',
+                        message: chalk.cyan('Are you sure you wish to continue?'),
+                        default: false
+                }
+        ]);
 
-	const answer = await new Promise((resolve) => {
-		rl.question(
-			chalk.cyan('Are you sure you wish to continue? (y/N): '),
-			resolve
-		);
-	});
-	rl.close();
-
-	return answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes';
+        return overwrite;
 }
 
 /**
